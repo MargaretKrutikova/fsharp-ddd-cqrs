@@ -5,7 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Library.fs"/>
+        <Compile Include="Types.fs" />
+        <Compile Include="Commands.fs" />
+        <Compile Include="Events.fs" />
+        <Compile Include="Logic.fs" />
     </ItemGroup>
 
 </Project>
