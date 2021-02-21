@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Infrastructure/InMemoryPersistence.fs" />
+        <Compile Include="CompositionRoot.fs" />
+        <Compile Include="ApiModels.fs" />
+        <Compile Include="ApiHandlers.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Giraffe" Version="5.0.0-rc-6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Application\Application.fsproj" />
+      <ProjectReference Include="..\Domain\Domain.fsproj" />
+    </ItemGroup>
+
+</Project>
