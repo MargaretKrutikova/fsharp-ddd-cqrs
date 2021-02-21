@@ -61,26 +61,42 @@ let ``Users' requests to borrow are added to the queue in the right order`` () =
     | other -> Assert.True (false, sprintf "Incorrect status %A" other)
 
 [<Fact>]
-let ``First user in request queue will automatically borrow book when it is returned by the borrower`` () =
-    let borrowerId = Guid.NewGuid () |> UserId
-    let borrowedDate = DateTime.Parse "2020-02-03"
-
-    let requesterId = Guid.NewGuid () |> UserId
-    let requestedDate = DateTime.Parse "2020-02-04"
-    let returnDate = DateTime.Parse "2020-02-06"
+let ``Users already in queue can't place borrow requests for the same listing`` () =
+    // Arrange
+    let borrowerId, borrowedDate = createBorrowRequest "2020-02-03"
+    let requesterId, requestedAt1 = createBorrowRequest "2020-02-04"
+    let requestedAt2 = DateTime.Parse "2020-02-06"
     
-    let updatedListing =
-        createPublishBookArgs ()
-        |> publishBookListing
+    let listing = createPublishBookArgs () |> publishBookListing
+    
+    // Act
+    let result =
+        listing
         |> borrowBook borrowerId borrowedDate
-        |> bindFst (placeRequestToBorrow requesterId requestedDate)
-        |> bindFst (returnBook borrowerId returnDate)
+        |> bindFst (placeRequestToBorrow requesterId requestedAt1)
+        |> bindFst (placeRequestToBorrow requesterId requestedAt2)
         |> mapFst
-        |> unwrap
     
-    let expectedStatus = {
-        BorrowedBy = requesterId
-        BorrowedAt = returnDate
-        RequestToBorrowQueue = BorrowedStatusDetails.createEmptyQueue ()
-    }
-    Assert.Equal(Borrowed expectedStatus, updatedListing.Status)
+    // Assert
+    let expectedError = UserCantPlaceRequestToBorrow (listing.Id, requesterId)
+    Assert.Equal(Error expectedError, result)
+
+[<Fact>]
+let ``Users can't borrow already borrowed books`` () =
+    // Arrange
+    let borrowRequest1 = createBorrowRequest "2020-02-03"
+    let borrowRequest2 = createBorrowRequest "2020-02-04"
+    
+    let listing = createPublishBookArgs () |> publishBookListing
+    
+    // Act
+    let result =
+        listing
+        |> (borrowRequest1 ||> borrowBook)
+        |> bindFst (borrowRequest2 ||> borrowBook)
+        |> mapFst
+    
+
+    // Assert
+    let expectedError = BookIsAlreadyBorrowed listing.Id
+    Assert.Equal(Error expectedError, result)
