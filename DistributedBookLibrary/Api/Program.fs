@@ -1,0 +1,96 @@
+module Api.App
+
+open System
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Cors.Infrastructure
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Logging
+open Giraffe
+
+// ---------------------------------
+// Web app
+// ---------------------------------
+
+let webApp () =
+    choose [
+        subRoute "/api/listings"
+            (choose [
+                POST >=> choose [
+                    route "/publish" >=> ApiHandlers.handlePublishListing
+                ]
+            ])
+        setStatusCode 404 >=> text "Not Found"  ]
+// ---------------------------------
+// Error handler
+// ---------------------------------
+
+let errorHandler (ex: Exception) (logger: ILogger) =
+    logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
+
+    clearResponse
+    >=> setStatusCode 500
+    >=> text ex.Message
+
+// ---------------------------------
+// Config and Main
+// ---------------------------------
+
+let configureCors (builder: CorsPolicyBuilder) =
+    builder
+        .WithOrigins("http://localhost:5000")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+    |> ignore
+
+let compose (container: IServiceProvider): CompositionRoot.CompositionRoot =
+    let logger =
+        container.GetRequiredService<ILogger<IStartup>>()
+
+    CompositionRoot.compose logger
+
+let configureApp (app: IApplicationBuilder) =
+    let env =
+        app.ApplicationServices.GetService<IWebHostEnvironment>()
+
+    (match env.IsDevelopment() with
+     | true -> app.UseDeveloperExceptionPage()
+     | false -> app.UseGiraffeErrorHandler(errorHandler))
+        .UseCors(configureCors)
+        .UseGiraffe(webApp ())
+
+let configureServices (services: IServiceCollection) =
+    services.AddCors() |> ignore
+    services.AddGiraffe() |> ignore
+
+    services.AddSingleton<CompositionRoot.CompositionRoot>(compose)
+    |> ignore
+
+let configureAppConfiguration (context: WebHostBuilderContext) (config: IConfigurationBuilder) =
+    config
+        .AddJsonFile("appsettings.json", false, true)
+        .AddJsonFile(sprintf "appsettings.%s.json" context.HostingEnvironment.EnvironmentName, true)
+        .AddEnvironmentVariables()
+    |> ignore
+
+type Startup() =
+    member __.ConfigureServices(services: IServiceCollection) = configureServices services
+
+    member __.Configure (app: IApplicationBuilder) (env: IHostEnvironment) (loggerFactory: ILoggerFactory) =
+        configureApp app
+
+[<EntryPoint>]
+let main _ =
+    Host
+        .CreateDefaultBuilder()
+        .ConfigureWebHostDefaults(fun webHostBuilder ->
+            webHostBuilder
+                .ConfigureAppConfiguration(configureAppConfiguration)
+                .UseStartup<Startup>()
+            |> ignore)
+        .Build()
+        .Run()
+
+    0
