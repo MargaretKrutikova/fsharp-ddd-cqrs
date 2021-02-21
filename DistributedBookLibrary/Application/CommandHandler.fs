@@ -13,7 +13,7 @@ type CommandError =
     static member toPersistence error = Persistence error
     static member toDomain error = Domain error
 
-let publishBookHandler (persistence: Persistence) (args: PublishBookListingArgs) =
+let private publishBookHandler (persistence: Persistence) (args: PublishBookListingArgs) =
     asyncResult {
         let listing, event = Logic.publishBookListing args
         do! persistence.AddBook listing
@@ -22,7 +22,7 @@ let publishBookHandler (persistence: Persistence) (args: PublishBookListingArgs)
         return event
     }
    
-let performListingUpdate (persistence: Persistence) listingId updateListing =
+let private performListingUpdate (persistence: Persistence) listingId updateListing =
     asyncResult {
         let! bookListing =
             persistence.GetBookById listingId
@@ -39,15 +39,15 @@ let performListingUpdate (persistence: Persistence) listingId updateListing =
         return event
     } 
    
-let borrowBookHandler (persistence: Persistence) (args: BorrowBookArgs) =
+let private borrowBookHandler (persistence: Persistence) (args: BorrowBookArgs) =
     let handle = Logic.borrowBook args.BorrowerId args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
-let placeRequestToBorrowHandler (persistence: Persistence) (args: PlaceRequestToBorrowArgs) =
+let private placeRequestToBorrowHandler (persistence: Persistence) (args: PlaceRequestToBorrowArgs) =
     let handle = Logic.placeRequestToBorrow args.RequestedBy args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
-let returnBookHandler (persistence: Persistence) (args: ReturnBookArgs) =
+let private returnBookHandler (persistence: Persistence) (args: ReturnBookArgs) =
     let handle = Logic.returnBook args.BorrowerId args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
