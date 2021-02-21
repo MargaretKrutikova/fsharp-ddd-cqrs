@@ -1,6 +1,7 @@
 module Domain.Logic
 
 open System
+open Domain.Commands
 open Domain.Types
 open Domain.Events
 
@@ -15,12 +16,15 @@ module BorrowedStatusDetails =
           RequestedDate = requestedAt }
         :: queue
 
+    let createEmptyQueue (): RequestToBorrowQueue = List.empty 
+    
     let addUserToQueue (dateTime: DateTime) (userId: UserId) details =
         let queue =
             details.RequestToBorrowQueue
             |> addUserToRequestQueue dateTime userId
 
-        { details with RequestToBorrowQueue = queue }
+        { details with
+              RequestToBorrowQueue = queue }
 
     let private hasUserRequestInQueue (userId: UserId) (queue: RequestToBorrowQueue) =
         queue
@@ -33,6 +37,13 @@ module BorrowedStatusDetails =
            |> not
 
 let private updateStatus (bookListing: BookListing) status = { bookListing with Status = status }
+
+let publishBookListing (args: PublishBookListingArgs) =
+    { Id = args.Id
+      OwnerId = args.OwnerId
+      Author = args.Author
+      Title = args.Title
+      Status = Available }
 
 let placeRequestToBorrow (requestedBy: UserId) (dateTime: DateTime) (bookListing: BookListing) =
     match bookListing.Status with
