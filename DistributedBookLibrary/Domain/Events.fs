@@ -25,6 +25,7 @@ type BookRequestQueueAdvancedArgs =
       DateTime: DateTime }
 
 type DomainEvent =
+    | BookPublished of BookListing
     | UserAddedToRequestQueue of UserAddedToRequestQueueArgs
     | BookBorrowed of BookBorrowedArgs
     | BookReturned of BookReturnedArgs

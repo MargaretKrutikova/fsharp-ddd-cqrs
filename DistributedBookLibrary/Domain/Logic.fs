@@ -12,10 +12,12 @@ module BorrowedStatusDetails =
           RequestToBorrowQueue = queue }
 
     let private addUserToRequestQueue (requestedAt: DateTime) (userId: UserId) (queue: RequestToBorrowQueue) =
-        queue @ [{ RequestedBy = userId; RequestedDate = requestedAt }]
+        queue
+        @ [ { RequestedBy = userId
+              RequestedDate = requestedAt } ]
 
-    let createEmptyQueue (): RequestToBorrowQueue = List.empty 
-    
+    let createEmptyQueue (): RequestToBorrowQueue = List.empty
+
     let addUserToQueue (dateTime: DateTime) (userId: UserId) details =
         let queue =
             details.RequestToBorrowQueue
@@ -37,11 +39,14 @@ module BorrowedStatusDetails =
 let private updateStatus (bookListing: BookListing) status = { bookListing with Status = status }
 
 let publishBookListing (args: PublishBookListingArgs) =
-    { Id = args.Id
-      OwnerId = args.OwnerId
-      Author = args.Author
-      Title = args.Title
-      Status = Available }
+    let listingToPublish =
+        { Id = args.Id
+          OwnerId = args.OwnerId
+          Author = args.Author
+          Title = args.Title
+          Status = Available }
+
+    (listingToPublish, BookPublished listingToPublish)
 
 let placeRequestToBorrow (requestedBy: UserId) (dateTime: DateTime) (bookListing: BookListing) =
     match bookListing.Status with

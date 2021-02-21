@@ -13,7 +13,7 @@ let ``A published book automatically becomes available`` () =
     let args = createPublishBookArgs ()
     
     // Act
-    let listing = publishBookListing args
+    let listing = publishBookListing args |> fst
     
     // Assert
     Assert.Equal(Available, listing.Status)
@@ -24,9 +24,10 @@ let ``Users can borrow available published books`` () =
     let (borrowerId, borrowedAt) = createBorrowRequest "2020-02-03"
     
     // Act
+    let listing = createPublishBookArgs () |> publishBookListing |> fst
+    
     let borrowedListing =
-        createPublishBookArgs ()
-        |> publishBookListing 
+        listing
         |> borrowBook borrowerId borrowedAt
         |> mapFst
         |> unwrap
@@ -47,10 +48,10 @@ let ``First user in request queue will automatically borrow book when it is retu
     let returnDate = DateTime.Parse "2020-02-06"
     
     // Act
+    let listing = createPublishBookArgs () |> publishBookListing |> fst
     let updatedListing =
-        createPublishBookArgs ()
-        |> publishBookListing
-        |> borrowBook borrowerId borrowedDate
+        listing
+        |> borrowBook borrowerId borrowedDate 
         |> bindFst (placeRequestToBorrow requesterId requestedDate)
         |> bindFst (returnBook borrowerId returnDate)
         |> mapFst
@@ -79,9 +80,9 @@ let ``Queue with requests to borrow works in first-in-first-out order`` () =
     let returnDate3 = DateTime.Parse "2020-02-11"
 
     // Act
+    let listing = createPublishBookArgs () |> publishBookListing |> fst
     let updatedListing =
-        createPublishBookArgs ()
-        |> publishBookListing 
+        listing
         |> borrowBook borrowerId borrowedAt
         |> bindFst (queueRequest1 ||> placeRequestToBorrow)
         |> bindFst (queueRequest2 ||> placeRequestToBorrow)
@@ -106,7 +107,7 @@ let ``Users already in queue can't place borrow requests for the same listing`` 
     let requesterId, requestedAt1 = createBorrowRequest "2020-02-04"
     let requestedAt2 = DateTime.Parse "2020-02-06"
     
-    let listing = createPublishBookArgs () |> publishBookListing
+    let listing = createPublishBookArgs () |> publishBookListing |> fst
     
     // Act
     let result =
@@ -126,7 +127,7 @@ let ``Users can't borrow already borrowed books`` () =
     let borrowRequest1 = createBorrowRequest "2020-02-03"
     let borrowRequest2 = createBorrowRequest "2020-02-04"
     
-    let listing = createPublishBookArgs () |> publishBookListing
+    let listing = createPublishBookArgs () |> publishBookListing |> fst
     
     // Act
     let result =
