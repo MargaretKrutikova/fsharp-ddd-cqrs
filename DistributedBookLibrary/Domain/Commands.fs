@@ -28,5 +28,5 @@ type BorrowBookArgs =
 type Command =
     | PublishBookListing of PublishBookListingArgs
     | PlaceRequestToBorrow of PlaceRequestToBorrowArgs
-    | BorrowBook of ReturnBookArgs
-    | ReturnBook of BorrowBookArgs
+    | BorrowBook of BorrowBookArgs
+    | ReturnBook of ReturnBookArgs
