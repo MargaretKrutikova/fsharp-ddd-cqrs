@@ -6,6 +6,8 @@
 
     <ItemGroup>
         <Compile Include="Infrastructure/InMemoryPersistence.fs" />
+        <Compile Include="Queries\QueryModels.fs" />
+        <Compile Include="Queries\Queries.fs" />
         <Compile Include="CompositionRoot.fs" />
         <Compile Include="ApiModels.fs" />
         <Compile Include="ApiHandlers.fs" />
