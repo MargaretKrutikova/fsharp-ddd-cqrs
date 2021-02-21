@@ -29,6 +29,21 @@ let createPublishBookArgs (): PublishBookListingArgs =
       Title = "test"
       Author = "test" }
 
-let assertQueueEntry (requestedBy, requestedDate) (actual: RequestQueueEntry) =
-    Assert.Equal(requestedBy, actual.RequestedBy)
-    Assert.Equal(requestedDate, actual.RequestedDate)
+let assertBorrowStatus borrowerId borrowedAt (status: ListingStatus) =
+    match status with
+    | Borrowed actual ->
+        Assert.Equal(borrowerId, actual.BorrowedBy)
+        Assert.Equal(borrowedAt, actual.BorrowedAt)
+    | other ->
+        Assert.True(false, sprintf "Received wrong listing status %A" other)
+
+let returnBookAndAssert borrowerId date nextBorrowerId listing =
+    let returnedListing =
+        listing
+        |> Logic.returnBook borrowerId date
+        |> mapFst
+        |> unwrap
+        
+    assertBorrowStatus nextBorrowerId date returnedListing.Status
+    
+    returnedListing

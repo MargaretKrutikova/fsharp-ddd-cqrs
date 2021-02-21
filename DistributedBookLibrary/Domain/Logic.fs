@@ -12,9 +12,7 @@ module BorrowedStatusDetails =
           RequestToBorrowQueue = queue }
 
     let private addUserToRequestQueue (requestedAt: DateTime) (userId: UserId) (queue: RequestToBorrowQueue) =
-        { RequestedBy = userId
-          RequestedDate = requestedAt }
-        :: queue
+        queue @ [{ RequestedBy = userId; RequestedDate = requestedAt }]
 
     let createEmptyQueue (): RequestToBorrowQueue = List.empty 
     
