@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Application\Application.fsproj" />
+      <ProjectReference Include="..\Business\Business.fsproj" />
       <ProjectReference Include="..\Domain\Domain.fsproj" />
     </ItemGroup>
 

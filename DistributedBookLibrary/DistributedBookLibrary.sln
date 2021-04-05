@@ -6,7 +6,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domain", "Domain\Domain.fsp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domain.UnitTests", "Domain.UnitTests\Domain.UnitTests.fsproj", "{9A49B07D-01C8-4FDB-B9C6-738F26A6DC20}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Application", "Application\Application.fsproj", "{A663E99B-6E6E-4375-8155-4FC497C653D3}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Business", "Business\Business.fsproj", "{A663E99B-6E6E-4375-8155-4FC497C653D3}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Api", "Api\Api.fsproj", "{A410281C-1FAF-4162-A229-FC90425EEC93}"
 EndProject
