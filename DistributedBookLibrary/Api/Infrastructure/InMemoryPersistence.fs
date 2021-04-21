@@ -67,38 +67,37 @@ let create (): Persistence * ReadStorage =
             |> List.map toListingQueryModel
             |> Ok
             |> Async.singleton
-        
+
         let toUserListing type_ (listing: BookListing) =
             let (ListingId id) = listing.Id
-            {
-                ListingId = id
-                Author = listing.Author
-                Title = listing.Title
-                Type = type_
-            }
-        
+
+            { ListingId = id
+              Author = listing.Author
+              Title = listing.Title
+              Type = type_ }
+
         let getUserListingType (userId: UserId) (listing: BookListing) =
             if listing.OwnerId = userId then
                 PublishedByUser |> Some
             else
                 match listing.Status with
                 | Borrowed details when details.BorrowedBy = userId -> BorrowedByUser |> Some
-                | Borrowed details when details.RequestToBorrowQueue |> Seq.exists (fun entry -> entry.RequestedBy = userId) ->
+                | Borrowed details when details.RequestToBorrowQueue
+                                        |> Seq.exists (fun entry -> entry.RequestedBy = userId) ->
                     WaitingInQueue |> Some
                 | _ -> None
-                
+
         let getUserListings id =
             let userId = UserId id
+
             listings
-            |> List.choose
-                   (fun listing ->
-                       getUserListingType userId listing
-                       |> Option.map (fun type_ -> toUserListing type_ listing ))
+            |> List.choose (fun listing ->
+                getUserListingType userId listing
+                |> Option.map (fun type_ -> toUserListing type_ listing))
             |> Ok
             |> Async.singleton
-            
-        { getPublishedListings = getPublishedListings; getUserListings = getUserListings }
-    
+
+        { getPublishedListings = getPublishedListings
+          getUserListings = getUserListings }
+
     createCommandPersistence (), createReadStorage ()
-
-
