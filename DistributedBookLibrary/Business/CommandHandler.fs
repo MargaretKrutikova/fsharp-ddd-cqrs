@@ -52,7 +52,7 @@ let private returnBookHandler (persistence: Persistence) (args: ReturnBookArgs) 
     performListingUpdate persistence args.BookListingId handle
 
 let commandHandler (dispatchDomainEvent: DomainEvent -> Async<unit>) (persistence: Persistence) (command: Command) =
-    asyncResult{
+    asyncResult {
         let! event =
             match command with
             | PublishBookListing args -> publishBookHandler persistence args
