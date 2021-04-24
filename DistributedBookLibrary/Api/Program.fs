@@ -17,12 +17,16 @@ open Giraffe
 let webApp () =
     choose [
         subRoute "/api/listings"
+            (choose [   
+                POST >=> choose [ route "/publish" >=> ApiHandlers.handlePublishListing ]
+                GET >=> choose [ route "/" >=> ApiHandlers.getPublishedListings ]
+            ])
+        subRoute "/api/user"
             (choose [
-                POST >=> choose [
-                    route "/publish" >=> ApiHandlers.handlePublishListing
-                ]
+                GET >=> choose [ routef "%O/listings" ApiHandlers.getUserListings ]
             ])
         setStatusCode 404 >=> text "Not Found"  ]
+    
 // ---------------------------------
 // Error handler
 // ---------------------------------
@@ -46,9 +50,7 @@ let configureCors (builder: CorsPolicyBuilder) =
     |> ignore
 
 let compose (container: IServiceProvider): CompositionRoot.CompositionRoot =
-    let logger =
-        container.GetRequiredService<ILogger<IStartup>>()
-
+    let logger = container.GetRequiredService<ILogger<IStartup>>()
     CompositionRoot.compose logger
 
 let configureApp (app: IApplicationBuilder) =

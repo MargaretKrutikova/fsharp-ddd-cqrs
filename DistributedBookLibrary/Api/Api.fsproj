@@ -10,6 +10,7 @@
         <Compile Include="Infrastructure\InMemoryPersistence.fs" />
         <Compile Include="CompositionRoot.fs" />
         <Compile Include="ApiModels.fs" />
+        <Compile Include="HttpUtils.fs" />
         <Compile Include="ApiHandlers.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
