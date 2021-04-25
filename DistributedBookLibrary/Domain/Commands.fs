@@ -10,7 +10,7 @@ type PublishBookListingArgs =
       Title: string
       Author: string }
 
-type PlaceRequestToBorrowArgs =
+type QueueRequestToBorrowArgs =
     { RequestedBy: UserId
       DateTime: DateTime
       BookListingId: ListingId }
@@ -27,6 +27,6 @@ type BorrowBookArgs =
 
 type Command =
     | PublishBookListing of PublishBookListingArgs
-    | PlaceRequestToBorrow of PlaceRequestToBorrowArgs
+    | QueueRequestToBorrow of QueueRequestToBorrowArgs
     | BorrowBook of BorrowBookArgs
     | ReturnBook of ReturnBookArgs

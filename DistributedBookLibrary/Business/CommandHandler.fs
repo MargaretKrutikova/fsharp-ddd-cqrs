@@ -43,7 +43,7 @@ let private borrowBookHandler (persistence: Persistence) (args: BorrowBookArgs) 
     let handle = Logic.borrowBook args.BorrowerId args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
-let private placeRequestToBorrowHandler (persistence: Persistence) (args: PlaceRequestToBorrowArgs) =
+let private placeRequestToBorrowHandler (persistence: Persistence) (args: QueueRequestToBorrowArgs) =
     let handle = Logic.placeRequestToBorrow args.RequestedBy args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
@@ -56,7 +56,7 @@ let commandHandler (dispatchDomainEvent: DomainEvent -> Async<unit>) (persistenc
         let! event =
             match command with
             | PublishBookListing args -> publishBookHandler persistence args
-            | PlaceRequestToBorrow args -> placeRequestToBorrowHandler persistence args
+            | QueueRequestToBorrow args -> placeRequestToBorrowHandler persistence args
             | BorrowBook args -> borrowBookHandler persistence args
             | ReturnBook args -> returnBookHandler persistence args
             
