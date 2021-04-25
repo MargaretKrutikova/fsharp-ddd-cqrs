@@ -19,6 +19,9 @@ let webApp () =
         subRoute "/api/listings"
             (choose [   
                 POST >=> choose [ route "/publish" >=> ApiHandlers.handlePublishListing ]
+                POST >=> choose [ route "/queue" >=> ApiHandlers.handleQueueRequestListing ]
+                POST >=> choose [ route "/return" >=> ApiHandlers.handleReturnListing ]
+                POST >=> choose [ route "/borrow" >=> ApiHandlers.handleBorrowListing ]
                 GET >=> choose [ route "/" >=> ApiHandlers.getPublishedListings ]
             ])
         subRoute "/api/user"

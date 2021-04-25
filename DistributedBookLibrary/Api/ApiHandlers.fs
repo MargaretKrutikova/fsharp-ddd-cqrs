@@ -29,6 +29,51 @@ let handlePublishListing (next: HttpFunc) (ctx: HttpContext) =
         let! result = compositionRoot.CommandHandler command
         return! HttpUtils.commandToHttpResponse next ctx result
     }
+    
+let handleBorrowListing (next: HttpFunc) (ctx: HttpContext) =
+    task {
+        let compositionRoot = ctx.GetService<CompositionRoot>()
+        let! model = ctx.BindJsonAsync<BorrowListingInputModel>()
+
+        let command =
+            { BorrowerId = model.BorrowerId |> UserId
+              BookListingId = model.ListingId |> ListingId
+              DateTime = DateTime.Now }
+            |> BorrowBook
+
+        let! result = compositionRoot.CommandHandler command
+        return! HttpUtils.commandToHttpResponse next ctx result
+    }
+
+let handleReturnListing (next: HttpFunc) (ctx: HttpContext) =
+    task {
+        let compositionRoot = ctx.GetService<CompositionRoot>()
+        let! model = ctx.BindJsonAsync<ReturnListingInputModel>()
+
+        let command =
+            ({ BorrowerId = model.BorrowerId |> UserId
+               BookListingId = model.ListingId |> ListingId
+               DateTime = DateTime.Now }: ReturnBookArgs)
+            |> ReturnBook
+
+        let! result = compositionRoot.CommandHandler command
+        return! HttpUtils.commandToHttpResponse next ctx result
+    }
+
+let handleQueueRequestListing (next: HttpFunc) (ctx: HttpContext) =
+    task {
+        let compositionRoot = ctx.GetService<CompositionRoot>()
+        let! model = ctx.BindJsonAsync<QueueRequestToBorrowInputModel>()
+
+        let command =
+            { RequestedBy = model.BorrowerId |> UserId
+              BookListingId = model.ListingId |> ListingId
+              DateTime = DateTime.Now }
+            |> QueueRequestToBorrow
+
+        let! result = compositionRoot.CommandHandler command
+        return! HttpUtils.commandToHttpResponse next ctx result
+    }
 
 let getPublishedListings (next: HttpFunc) (ctx: HttpContext) =
     task {
