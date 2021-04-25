@@ -11,13 +11,20 @@ open FsToolkit.ErrorHandling
 type InMemoryUser = { Id: Guid; UserName: string }
 
 let create (): Persistence * ReadStorage =
-    let mutable listings: BookListing list = List.empty
+    let mutable listings: BookListing list =
+        [ { Id = Guid.Parse("bfc20b5b-884f-4646-a2f7-632133e3e23b") |> ListingId 
+            Author = "Adrian Tchaikovsky"
+            Title = "Children of Time"
+            Status = Available
+            OwnerId = Guid.Parse("1e94bedb-416f-443f-ac0f-28622665552e") |> UserId }]
 
     let mutable users: InMemoryUser list =
         [ { Id = Guid.Parse("1e94bedb-416f-443f-ac0f-28622665552e")
             UserName = "Bob" }
           { Id = Guid.Parse("2c1366e2-f73c-4aee-8608-d510c27a9ad5")
-            UserName = "Alice" } ]
+            UserName = "Alice" }
+          { Id = Guid.Parse("e4096feb-78c1-46d2-87b5-bc59ae34725b")
+            UserName = "Charlie" } ]
 
     let createCommandPersistence () =
         let getBookById id =
