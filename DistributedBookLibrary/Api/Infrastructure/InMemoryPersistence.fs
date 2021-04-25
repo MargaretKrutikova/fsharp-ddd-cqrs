@@ -42,30 +42,38 @@ let create (): Persistence * ReadStorage =
           AddBook = addBook }
 
     let createReadStorage (): ReadStorage =
-        let findUser (UserId id) = users |> List.find (fun u -> u.Id = id)
+        let findUser (UserId id) =
+            match users |> List.tryFind (fun u -> u.Id = id) with
+            | Some user -> Ok user
+            | None -> Error RecordNotFound
 
-        let toListingStatusModel (status: ListingStatus): ListingStatusModel =
-            match status with
-            | Available -> ListingStatusModel.Available
-            | Borrowed details ->
-                ListingStatusModel.Borrowed
-                    { BorrowedByUserName = (findUser details.BorrowedBy).UserName
-                      NumberOfUserInQueue = details.RequestToBorrowQueue.Length }
+        let toListingStatusModel (status: ListingStatus) =
+            result {
+                match status with
+                | Available -> return ListingStatusModel.Available
+                | Borrowed details ->
+                    let! user = findUser details.BorrowedBy
+                    return ListingStatusModel.Borrowed
+                            { BorrowedByUserName = user.UserName
+                              NumberOfUserInQueue = details.RequestToBorrowQueue.Length }
+            }
 
-        let toListingQueryModel (listing: BookListing): PublishedListingModel =
-            let owner = findUser listing.OwnerId
-            let (ListingId id) = listing.Id
-
-            { Id = id
-              Author = listing.Author
-              Title = listing.Title
-              OwnerUserName = owner.UserName
-              Status = toListingStatusModel listing.Status }
+        let toListingQueryModel (listing: BookListing) =
+            result {
+                let! owner = findUser listing.OwnerId
+                let (ListingId id) = listing.Id
+                let! status = toListingStatusModel listing.Status
+                
+                return { Id = id
+                         Author = listing.Author
+                         Title = listing.Title
+                         OwnerUserName = owner.UserName
+                         Status = status }
+            }
 
         let getPublishedListings () =
             listings
-            |> List.map toListingQueryModel
-            |> Ok
+            |> List.traverseResultM toListingQueryModel
             |> Async.singleton
 
         let toUserListing type_ (listing: BookListing) =
