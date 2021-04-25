@@ -55,7 +55,7 @@ let create (): Persistence * ReadStorage =
                     let! user = findUser details.BorrowedBy
                     return ListingStatusModel.Borrowed
                             { BorrowedByUserName = user.UserName
-                              NumberOfUserInQueue = details.RequestToBorrowQueue.Length }
+                              NumberOfUsersInQueue = details.RequestToBorrowQueue.Length }
             }
 
         let toListingQueryModel (listing: BookListing) =

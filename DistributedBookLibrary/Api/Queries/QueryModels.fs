@@ -4,7 +4,7 @@ open System
 
 type BorrowedStatusModel =
     { BorrowedByUserName: string
-      NumberOfUserInQueue: int }
+      NumberOfUsersInQueue: int }
 
 type ListingStatusModel =
     | Available
