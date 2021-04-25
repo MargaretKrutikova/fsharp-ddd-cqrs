@@ -104,16 +104,19 @@ let returnBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListi
 let borrowBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListing) =
     match bookListing.Status with
     | Available ->
-        let updatedListing =
-            BorrowedStatusDetails.create dateTime borrowerId List.empty
-            |> Borrowed
-            |> updateStatus bookListing
+        if borrowerId = bookListing.OwnerId then
+            BorrowerCantBeTheSameAsOwner bookListing.Id |> Error
+        else 
+            let updatedListing =
+                BorrowedStatusDetails.create dateTime borrowerId List.empty
+                |> Borrowed
+                |> updateStatus bookListing
 
-        let event =
-            BookBorrowed
-                { BookId = bookListing.Id
-                  DateTime = dateTime
-                  BorrowedBy = borrowerId }
+            let event =
+                BookBorrowed
+                    { BookId = bookListing.Id
+                      DateTime = dateTime
+                      BorrowedBy = borrowerId }
 
-        (updatedListing, event) |> Ok
+            (updatedListing, event) |> Ok
     | Borrowed _ -> BookIsAlreadyBorrowed bookListing.Id |> Error

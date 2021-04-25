@@ -33,3 +33,4 @@ type DomainError =
     | BookIsNotBorrowed of ListingId
     | BookIsAlreadyBorrowed of ListingId
     | BookIsNotBorrowedByUser of ListingId * UserId
+    | BorrowerCantBeTheSameAsOwner of ListingId
