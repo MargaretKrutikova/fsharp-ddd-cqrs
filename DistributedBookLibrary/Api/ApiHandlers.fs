@@ -83,7 +83,7 @@ let getPublishedListings (next: HttpFunc) (ctx: HttpContext) =
         return! HttpUtils.queryToHttpResponse next ctx result
     }
     
-let getUserListings userId =
+let getUserListings (userId: Guid) =
     fun (next: HttpFunc) (ctx: HttpContext) ->
         task {
             let compositionRoot = ctx.GetService<CompositionRoot>()

@@ -26,7 +26,7 @@ let webApp () =
             ])
         subRoute "/api/user"
             (choose [
-                GET >=> choose [ routef "%O/listings" ApiHandlers.getUserListings ]
+                GET >=> choose [ routef "/%O/listings" ApiHandlers.getUserListings ]
             ])
         setStatusCode 404 >=> text "Not Found"  ]
     
