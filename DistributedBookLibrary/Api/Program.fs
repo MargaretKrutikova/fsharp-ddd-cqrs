@@ -9,6 +9,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Giraffe
+open Microsoft.Extensions.Logging.Console
 
 // ---------------------------------
 // Web app
@@ -54,6 +55,7 @@ let configureCors (builder: CorsPolicyBuilder) =
 
 let compose (container: IServiceProvider): CompositionRoot.CompositionRoot =
     let logger = container.GetRequiredService<ILogger<IStartup>>()
+    // read app config to get db connections, message queue connections etc
     CompositionRoot.compose logger
 
 let configureApp (app: IApplicationBuilder) =
@@ -80,6 +82,10 @@ let configureAppConfiguration (context: WebHostBuilderContext) (config: IConfigu
         .AddEnvironmentVariables()
     |> ignore
 
+let configureLogging (context: WebHostBuilderContext) (logging: ILoggingBuilder) =
+    logging.AddFilter<ConsoleLoggerProvider>("Microsoft", LogLevel.Information)
+    |> ignore
+
 type Startup() =
     member __.ConfigureServices(services: IServiceCollection) = configureServices services
 
@@ -93,6 +99,7 @@ let main _ =
         .ConfigureWebHostDefaults(fun webHostBuilder ->
             webHostBuilder
                 .ConfigureAppConfiguration(configureAppConfiguration)
+                .ConfigureLogging(configureLogging)
                 .UseStartup<Startup>()
             |> ignore)
         .Build()
