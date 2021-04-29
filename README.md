@@ -1,4 +1,4 @@
-# Example project with DDD, CQRD in an onion
+# Example project with DDD, CQRS in an onion
 
 This is a tiny api that implements a simple peer-to-peer library for exchanging physical books.
 
