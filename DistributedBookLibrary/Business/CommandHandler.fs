@@ -15,11 +15,15 @@ type CommandError =
 
 let private publishBookHandler (persistence: Persistence) (args: PublishBookListingArgs) =
     asyncResult {
-        let listing, event = Logic.publishBookListing args
+        let! listing, events =
+            Logic.publishBookListing args
+            |> Async.singleton
+            |> AsyncResult.mapError (CommandError.toDomain)
+            
         do! persistence.AddBook listing
             |> AsyncResult.mapError (CommandError.toPersistence)
             
-        return event
+        return events
     }
    
 let private performListingUpdate (persistence: Persistence) listingId updateListing =
@@ -28,7 +32,7 @@ let private performListingUpdate (persistence: Persistence) listingId updateList
             persistence.GetBookById listingId
             |> AsyncResult.mapError (CommandError.toPersistence)
             
-        let! updatedListing, event =
+        let! updatedListing, events =
             updateListing bookListing
             |> Async.singleton
             |> AsyncResult.mapError (CommandError.toDomain)
@@ -36,7 +40,7 @@ let private performListingUpdate (persistence: Persistence) listingId updateList
         do! persistence.UpdateBook updatedListing
             |> AsyncResult.mapError (CommandError.toPersistence)
             
-        return event
+        return events
     } 
    
 let private borrowBookHandler (persistence: Persistence) (args: BorrowBookArgs) =
@@ -51,14 +55,14 @@ let private returnBookHandler (persistence: Persistence) (args: ReturnBookArgs) 
     let handle = Logic.returnBook args.BorrowerId args.DateTime
     performListingUpdate persistence args.BookListingId handle
 
-let commandHandler (dispatchDomainEvent: DomainEvent -> Async<unit>) (persistence: Persistence) (command: Command) =
+let commandHandler (dispatchDomainEvent: DomainEvent list -> Async<unit>) (persistence: Persistence) (command: Command) =
     asyncResult {
-        let! event =
+        let! events =
             match command with
             | PublishBookListing args -> publishBookHandler persistence args
             | QueueRequestToBorrow args -> placeRequestToBorrowHandler persistence args
             | BorrowBook args -> borrowBookHandler persistence args
             | ReturnBook args -> returnBookHandler persistence args
             
-        do! dispatchDomainEvent event
+        do! dispatchDomainEvent events
     }

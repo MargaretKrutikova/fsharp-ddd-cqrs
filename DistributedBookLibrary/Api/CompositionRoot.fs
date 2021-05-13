@@ -13,8 +13,8 @@ type CompositionRoot =
     { CommandHandler: Command -> Async<Result<unit, CommandError>>
       ReadStorage: ReadStorage }
 
-let dispatchDomainEvent (logger: ILogger) (event: DomainEvent): Async<unit> =
-    logger.LogInformation(sprintf "Domain event published: %A" event)
+let dispatchDomainEvent (logger: ILogger) (event: DomainEvent list): Async<unit> =
+    logger.LogInformation(sprintf "Domain events published: %A" event)
     Async.singleton ()
 
 let compose (logger: ILogger): CompositionRoot =

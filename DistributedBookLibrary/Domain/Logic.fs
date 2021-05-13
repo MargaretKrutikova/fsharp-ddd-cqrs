@@ -38,7 +38,9 @@ module BorrowedStatusDetails =
 
 let private updateStatus (bookListing: BookListing) status = { bookListing with Status = status }
 
-let publishBookListing (args: PublishBookListingArgs) =
+type WorkflowResult = Result<BookListing * DomainEvent list, DomainError>
+
+let publishBookListing (args: PublishBookListingArgs): WorkflowResult =
     let listingToPublish =
         { Id = args.Id
           OwnerId = args.OwnerId
@@ -46,9 +48,10 @@ let publishBookListing (args: PublishBookListingArgs) =
           Title = args.Title
           Status = Available }
 
-    (listingToPublish, BookPublished listingToPublish)
+    (listingToPublish, [ BookPublished listingToPublish ])
+    |> Ok
 
-let placeRequestToBorrow (requestedBy: UserId) (dateTime: DateTime) (bookListing: BookListing) =
+let placeRequestToBorrow (requestedBy: UserId) (dateTime: DateTime) (bookListing: BookListing): WorkflowResult =
     match bookListing.Status with
     | Available -> BookHasNoRequestQueue bookListing.Id |> Error
     | Borrowed status when BorrowedStatusDetails.userCanPlaceRequest status requestedBy ->
@@ -64,12 +67,12 @@ let placeRequestToBorrow (requestedBy: UserId) (dateTime: DateTime) (bookListing
                   DateTime = dateTime
                   UserId = requestedBy }
 
-        (updatedListing, event) |> Ok
+        (updatedListing, [ event ]) |> Ok
     | Borrowed _ ->
         UserCantPlaceRequestToBorrow(bookListing.Id, requestedBy)
         |> Error
 
-let returnBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListing) =
+let returnBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListing): WorkflowResult =
     match bookListing.Status with
     | Available -> BookIsNotBorrowed bookListing.Id |> Error
     | Borrowed status when status.BorrowedBy <> borrowerId ->
@@ -85,23 +88,29 @@ let returnBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListi
                   DateTime = dateTime
                   BookId = bookListing.Id }
 
-        (updatedListing, event) |> Ok
+        (updatedListing, [ event ]) |> Ok
     | Borrowed ({ RequestToBorrowQueue = firstEntry :: queue }) ->
         let updatedListing =
             BorrowedStatusDetails.create dateTime firstEntry.RequestedBy queue
             |> Borrowed
             |> updateStatus bookListing
 
-        let event =
+        let returnBookEvent = 
+            BookReturned
+                { ReturnedBy = borrowerId
+                  DateTime = dateTime
+                  BookId = bookListing.Id }
+                
+        let queueEvent =
             BookRequestQueueAdvanced
                 { BookId = bookListing.Id
                   ReturnedBy = borrowerId
                   NextBorrowerId = firstEntry.RequestedBy
                   DateTime = dateTime }
 
-        (updatedListing, event) |> Ok
+        (updatedListing, [ returnBookEvent; queueEvent ]) |> Ok
 
-let borrowBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListing) =
+let borrowBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListing): WorkflowResult =
     match bookListing.Status with
     | Available ->
         if borrowerId = bookListing.OwnerId then
@@ -118,5 +127,5 @@ let borrowBook (borrowerId: UserId) (dateTime: DateTime) (bookListing: BookListi
                       DateTime = dateTime
                       BorrowedBy = borrowerId }
 
-            (updatedListing, event) |> Ok
+            (updatedListing, [ event ]) |> Ok
     | Borrowed _ -> BookIsAlreadyBorrowed bookListing.Id |> Error
